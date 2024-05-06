@@ -41,7 +41,6 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const options = {
-                // Include only the `title` and `imdb` fields in the returned document
                 projection: { title: 1, service_id: 1, price: 1, img: 1 },
             };
             const result = await serviceCollection.findOne(query, options);
@@ -50,7 +49,14 @@ async function run() {
 
 
         // bookings
-
+        
+        app.post('/bookings', async (req, res) => {
+            const bookings = req.body;
+            const result = await bookingCollection.insertOne(bookings);
+            res.send(result)
+        })
+        
+        
         app.get('/bookings', async (req, res) => {
             let query = {};
             if (req.query?.email) {
@@ -60,13 +66,25 @@ async function run() {
             res.send(result)
         })
 
-        app.post('/bookings', async (req, res) => {
-            const bookings = req.body;
-            const result = await bookingCollection.insertOne(bookings);
-            res.send(result)
+        app.patch('/bookings/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = { _id : new ObjectId(id)};
+            const updatedBooking = req.body;
+            const updateDoc = {
+                $set: {
+                  status: updatedBooking.status
+                },
+              };
+              const result = await bookingCollection.updateOne(query, updateDoc);
+              res.send(result)
         })
 
-
+        app.delete('/bookings/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = { _id : new ObjectId(id)}
+            const result = await bookingCollection.deleteOne(query);
+            res.send(result)
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
